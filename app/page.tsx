@@ -2,7 +2,7 @@
 import DogTable from "../components/DogTable";
 import { Dog } from "../types/Dog";
 import DogFilter from "../components/DogFilter";
-import React from "react";
+import React, { useState } from "react";
 
 const sampleDogs: Dog[] = [
   {
@@ -88,13 +88,17 @@ const sampleDogs: Dog[] = [
 ];
 
 export default function Home() {
-  const [selectedBreeds, setSelectedBreeds] = React.useState<string[]>([]);
+  const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
 
   const handleBreedChange = (breeds: string[]) => {
     setSelectedBreeds(breeds);
   };
 
   const breeds = Array.from(new Set(sampleDogs.map((dog) => dog.breed)));
+
+  const filteredDogs = selectedBreeds.length
+    ? sampleDogs.filter((dog) => selectedBreeds.includes(dog.breed))
+    : sampleDogs;
 
   return (
     <main className="p-12 bg-off-white min-h-screen">
@@ -105,7 +109,7 @@ export default function Home() {
           onChange={handleBreedChange}
         />
       </div>
-      <DogTable dogs={sampleDogs} />
+      <DogTable dogs={filteredDogs} />
     </main>
   );
 }

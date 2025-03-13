@@ -8,90 +8,8 @@ import { Typography, Box, Alert } from "@mui/material";
 import { useUser } from "./context/UserContext";
 import { useRouter } from "next/navigation";
 import { searchDogs } from "./api/dogs/searchDogs";
+import { postDogs } from "./api/dogs/postDogs";
 import type { DogSearchResponse } from "./api/dogs/searchDogs";
-
-const sampleDogs: Dog[] = [
-  {
-    id: "1",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Max",
-    age: 3,
-    zip_code: "97209",
-    breed: "Irish Terrier",
-  },
-  {
-    id: "2",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Luna",
-    age: 2,
-    zip_code: "97210",
-    breed: "Golden Retriever",
-  },
-  {
-    id: "3",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Charlie",
-    age: 4,
-    zip_code: "97211",
-    breed: "Labrador",
-  },
-  {
-    id: "4",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Bella",
-    age: 1,
-    zip_code: "97212",
-    breed: "Poodle",
-  },
-  {
-    id: "5",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Rocky",
-    age: 5,
-    zip_code: "97213",
-    breed: "German Shepherd",
-  },
-  {
-    id: "6",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Lucy",
-    age: 2,
-    zip_code: "97214",
-    breed: "Beagle",
-  },
-  {
-    id: "7",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Duke",
-    age: 3,
-    zip_code: "97215",
-    breed: "Boxer",
-  },
-  {
-    id: "8",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Daisy",
-    age: 4,
-    zip_code: "97216",
-    breed: "Husky",
-  },
-  {
-    id: "9",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Cooper",
-    age: 2,
-    zip_code: "97217",
-    breed: "Rottweiler",
-  },
-  {
-    id: "10",
-    img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXVGPXGcqV9BNRmofETVWqrFLU_AYEjYQhfA&s",
-    name: "Molly",
-    age: 1,
-    zip_code: "97218",
-    breed: "Bulldog",
-  },
-];
 
 const ROWS_PER_PAGE = 6;
 
@@ -99,6 +17,7 @@ export default function Home() {
   const { user, logout } = useUser();
   const router = useRouter();
   const [dogResults, setDogResults] = useState<DogSearchResponse | null>(null);
+  const [fetchedDogs, setFetchedDogs] = useState<Dog[]>([]);
   const [error, setError] = useState<string>("");
   const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -116,9 +35,15 @@ export default function Home() {
       try {
         setError("");
         setIsLoading(true);
+
         const results = await searchDogs();
         setDogResults(results);
-        console.log("Dog search results:", results);
+
+        if (results.resultIds.length > 0) {
+          const dogIds = results.resultIds.slice(0, 100);
+          const dogDetails = await postDogs(dogIds);
+          setFetchedDogs(dogDetails);
+        }
       } catch (err) {
         setError("Failed to fetch dogs. Please try again later.");
         console.error("Error fetching dogs:", err);
@@ -144,10 +69,12 @@ export default function Home() {
 
   const handleBreedChange = (breeds: string[]) => {
     setSelectedBreeds(breeds);
+    setPage(0); // Reset to first page when changing filters
   };
 
   const handleClearFilters = () => {
     setSelectedBreeds([]);
+    setPage(0);
   };
 
   const handlePageChange = (event: unknown, newPage: number) => {
@@ -174,11 +101,11 @@ export default function Home() {
     setFavorites(new Set());
   };
 
-  const breeds = Array.from(new Set(sampleDogs.map((dog) => dog.breed)));
+  const breeds = Array.from(new Set(fetchedDogs.map((dog) => dog.breed)));
 
   const filteredDogs = selectedBreeds.length
-    ? sampleDogs.filter((dog) => selectedBreeds.includes(dog.breed))
-    : sampleDogs;
+    ? fetchedDogs.filter((dog) => selectedBreeds.includes(dog.breed))
+    : fetchedDogs;
 
   const sortedDogs = [...filteredDogs].sort((a, b) => {
     if (sortOrder === "asc") {
@@ -233,66 +160,81 @@ export default function Home() {
       )}
 
       {dogResults && (
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Found {dogResults.total} dogs in search results
-        </Typography>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="body1">
+            Found {dogResults.total} dogs in search results
+          </Typography>
+          {fetchedDogs.length > 0 && (
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              Showing details for {fetchedDogs.length} dogs
+            </Typography>
+          )}
+        </Box>
       )}
 
       <div className="mb-6">
-        <DogFilter
-          breeds={breeds}
-          selectedBreeds={selectedBreeds}
-          onChange={handleBreedChange}
-        />
-        {selectedBreeds.length > 0 && (
-          <Button
-            onClick={handleClearFilters}
-            variant="outlined"
-            sx={{
-              borderColor: "red",
-              color: "red",
-              "&:hover": {
+        <div className="mb-4">
+          <DogFilter
+            breeds={breeds}
+            selectedBreeds={selectedBreeds}
+            onChange={handleBreedChange}
+          />
+        </div>
+        <div className="flex gap-2">
+          {selectedBreeds.length > 0 && (
+            <Button
+              onClick={handleClearFilters}
+              variant="outlined"
+              sx={{
                 borderColor: "red",
-                backgroundColor: "red",
-                color: "white",
-              },
-            }}
-            className="mt-4"
-          >
-            Clear Filters
-          </Button>
-        )}
-        {favorites.size > 0 && (
-          <Button
-            onClick={handleClearFavorites}
-            variant="outlined"
-            sx={{
-              borderColor: "red",
-              color: "red",
-              "&:hover": {
+                color: "red",
+                "&:hover": {
+                  borderColor: "red",
+                  backgroundColor: "red",
+                  color: "white",
+                },
+              }}
+              className="mt-4"
+            >
+              Clear Filters
+            </Button>
+          )}
+          {favorites.size > 0 && (
+            <Button
+              onClick={handleClearFavorites}
+              variant="outlined"
+              sx={{
                 borderColor: "red",
-                backgroundColor: "red",
-                color: "white",
-              },
-            }}
-            className="mt-4 ml-2"
-          >
-            Clear Favorites
-          </Button>
-        )}
+                color: "red",
+                "&:hover": {
+                  borderColor: "red",
+                  backgroundColor: "red",
+                  color: "white",
+                },
+              }}
+              className="mt-4 ml-2"
+            >
+              Clear Favorites
+            </Button>
+          )}
+        </div>
       </div>
 
-      <DogTable
-        totalDogs={sortedDogs.length}
-        favorites={favorites}
-        onFavoriteToggle={handleFavoriteToggle}
-        page={page}
-        sortOrder={sortOrder}
-        onPageChange={handlePageChange}
-        onSortToggle={handleSortToggle}
-        currentDogs={currentDogs}
-        rowsPerPage={ROWS_PER_PAGE}
-      />
+      {fetchedDogs.length > 0 ? (
+        <DogTable
+          totalDogs={sortedDogs.length}
+          favorites={favorites}
+          onFavoriteToggle={handleFavoriteToggle}
+          page={page}
+          sortOrder={sortOrder}
+          onPageChange={handlePageChange}
+          onSortToggle={handleSortToggle}
+          currentDogs={currentDogs}
+          rowsPerPage={ROWS_PER_PAGE}
+        />
+      ) : (
+        !error && <Typography>No dogs found</Typography>
+      )}
     </main>
   );
 }

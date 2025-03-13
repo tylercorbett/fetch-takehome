@@ -200,7 +200,6 @@ export default function Home() {
         sortOrder={sortOrder}
         onPageChange={handlePageChange}
         onSortToggle={handleSortToggle}
-        sortedDogs={sortedDogs}
         currentDogs={currentDogs}
         rowsPerPage={ROWS_PER_PAGE}
       />

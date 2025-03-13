@@ -90,6 +90,9 @@ const sampleDogs: Dog[] = [
 
 export default function Home() {
   const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const handleBreedChange = (breeds: string[]) => {
     setSelectedBreeds(breeds);
@@ -97,6 +100,26 @@ export default function Home() {
 
   const handleClearFilters = () => {
     setSelectedBreeds([]);
+  };
+
+  const handlePageChange = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleSortToggle = () => {
+    setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+  };
+
+  const handleFavoriteToggle = (dogId: string) => {
+    setFavorites((prevFavorites) => {
+      const newFavorites = new Set(prevFavorites);
+      if (newFavorites.has(dogId)) {
+        newFavorites.delete(dogId);
+      } else {
+        newFavorites.add(dogId);
+      }
+      return newFavorites;
+    });
   };
 
   const breeds = Array.from(new Set(sampleDogs.map((dog) => dog.breed)));
@@ -132,7 +155,15 @@ export default function Home() {
           </Button>
         )}
       </div>
-      <DogTable dogs={filteredDogs} />
+      <DogTable
+        dogs={filteredDogs}
+        favorites={favorites}
+        onFavoriteToggle={handleFavoriteToggle}
+        page={page}
+        sortOrder={sortOrder}
+        onPageChange={handlePageChange}
+        onSortToggle={handleSortToggle}
+      />
     </main>
   );
 }

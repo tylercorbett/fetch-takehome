@@ -18,35 +18,25 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 interface DogTableProps {
   dogs: Dog[];
+  favorites: Set<string>;
+  onFavoriteToggle: (id: string) => void;
+  page: number;
+  sortOrder: "asc" | "desc";
+  onPageChange: (event: unknown, newPage: number) => void;
+  onSortToggle: () => void;
 }
 
 const ROWS_PER_PAGE = 6;
 
-const DogTable = ({ dogs }: DogTableProps) => {
-  const [page, setPage] = useState(0);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleSortToggle = () => {
-    setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
-  };
-
-  const handleFavoriteToggle = (id: string) => {
-    setFavorites((prevFavorites) => {
-      const newFavorites = new Set(prevFavorites);
-      if (newFavorites.has(id)) {
-        newFavorites.delete(id);
-      } else {
-        newFavorites.add(id);
-      }
-      return newFavorites;
-    });
-  };
-
+const DogTable = ({
+  dogs,
+  favorites,
+  onFavoriteToggle,
+  page,
+  sortOrder,
+  onPageChange,
+  onSortToggle,
+}: DogTableProps) => {
   const sortedDogs = [...dogs].sort((a, b) => {
     if (sortOrder === "asc") {
       return a.breed.localeCompare(b.breed);
@@ -72,7 +62,7 @@ const DogTable = ({ dogs }: DogTableProps) => {
               <DogTableCell isHeader>Age</DogTableCell>
               <DogTableCell isHeader>
                 Breed
-                <IconButton onClick={handleSortToggle} sx={{ color: "white" }}>
+                <IconButton onClick={onSortToggle} sx={{ color: "white" }}>
                   {sortOrder === "asc" ? (
                     <ArrowDropDownIcon />
                   ) : (
@@ -90,7 +80,7 @@ const DogTable = ({ dogs }: DogTableProps) => {
                 sx={{ backgroundColor: index % 2 === 0 ? "white" : "#f8f8f8" }}
               >
                 <DogTableCell sx={{ width: "3rem" }}>
-                  <IconButton onClick={() => handleFavoriteToggle(dog.id)}>
+                  <IconButton onClick={() => onFavoriteToggle(dog.id)}>
                     {favorites.has(dog.id) ? (
                       <FavoriteIcon sx={{ color: "pink" }} />
                     ) : (
@@ -123,7 +113,7 @@ const DogTable = ({ dogs }: DogTableProps) => {
         count={dogs.length}
         rowsPerPage={ROWS_PER_PAGE}
         page={page}
-        onPageChange={handleChangePage}
+        onPageChange={onPageChange}
         rowsPerPageOptions={[ROWS_PER_PAGE]}
       />
     </Paper>

@@ -6,10 +6,13 @@ import {
   TableRow,
   Paper,
   TablePagination,
+  IconButton,
 } from "@mui/material";
 import { Dog } from "../types/Dog";
 import DogTableCell from "./DogTableCell";
 import { useState } from "react";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 
 interface DogTableProps {
   dogs: Dog[];
@@ -19,12 +22,25 @@ const ROWS_PER_PAGE = 6;
 
 const DogTable = ({ dogs }: DogTableProps) => {
   const [page, setPage] = useState(0);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const handleChangePage = (event: any, newPage: number) => {
+  const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
-  const currentDogs = dogs.slice(
+  const handleSortToggle = () => {
+    setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+  };
+
+  const sortedDogs = [...dogs].sort((a, b) => {
+    if (sortOrder === "asc") {
+      return a.breed.localeCompare(b.breed);
+    } else {
+      return b.breed.localeCompare(a.breed);
+    }
+  });
+
+  const currentDogs = sortedDogs.slice(
     page * ROWS_PER_PAGE,
     page * ROWS_PER_PAGE + ROWS_PER_PAGE
   );
@@ -34,11 +50,20 @@ const DogTable = ({ dogs }: DogTableProps) => {
       <TableContainer sx={{ backgroundColor: "white" }}>
         <Table sx={{ minWidth: 650 }} aria-label="dog table">
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#4081EC" }}>
+            <TableRow sx={{ backgroundColor: "#3A0F36" }}>
               <DogTableCell isHeader>Image</DogTableCell>
               <DogTableCell isHeader>Name</DogTableCell>
               <DogTableCell isHeader>Age</DogTableCell>
-              <DogTableCell isHeader>Breed</DogTableCell>
+              <DogTableCell isHeader>
+                Breed
+                <IconButton onClick={handleSortToggle} sx={{ color: "white" }}>
+                  {sortOrder === "asc" ? (
+                    <ArrowDropDownIcon />
+                  ) : (
+                    <ArrowDropUpIcon />
+                  )}
+                </IconButton>
+              </DogTableCell>
               <DogTableCell isHeader>Zip Code</DogTableCell>
             </TableRow>
           </TableHead>

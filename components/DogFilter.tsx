@@ -18,7 +18,10 @@ const DogFilter: React.FC<DogFilterProps> = ({
       multiple
       options={breeds}
       value={selectedBreeds}
-      onChange={(event, newValue) => onChange(newValue)}
+      disableCloseOnSelect
+      onChange={(event: React.SyntheticEvent, newValue) =>
+        onChange(newValue as string[])
+      }
       renderInput={(params) => (
         <TextField {...params} label="Filter by Breed" variant="outlined" />
       )}

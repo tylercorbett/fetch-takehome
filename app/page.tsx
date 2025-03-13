@@ -36,7 +36,7 @@ export default function Home() {
         setError("");
         setIsLoading(true);
 
-        const results = await searchDogs();
+        const results = await searchDogs({ size: 100 });
         setDogResults(results);
 
         if (results.resultIds.length > 0) {

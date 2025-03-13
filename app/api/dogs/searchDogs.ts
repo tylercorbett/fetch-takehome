@@ -8,9 +8,21 @@ export interface DogSearchResponse {
   prev?: string;
 }
 
-export async function searchDogs(): Promise<DogSearchResponse> {
+export interface SearchDogsParams {
+  size?: number;
+}
+
+export async function searchDogs(
+  params: SearchDogsParams = { size: 100 }
+): Promise<DogSearchResponse> {
   try {
-    const url = `${API_BASE_URL}${API_PATHS.DOGS}/search`;
+    const searchParams = new URLSearchParams();
+
+    searchParams.append("size", (params.size || 100).toString());
+
+    const url = `${API_BASE_URL}${
+      API_PATHS.DOGS
+    }/search?${searchParams.toString()}`;
 
     const response = await fetch(url, {
       method: "GET",

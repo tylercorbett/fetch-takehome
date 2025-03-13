@@ -124,6 +124,10 @@ export default function Home() {
     });
   };
 
+  const handleClearFavorites = () => {
+    setFavorites(new Set());
+  };
+
   const breeds = Array.from(new Set(sampleDogs.map((dog) => dog.breed)));
 
   const filteredDogs = selectedBreeds.length
@@ -167,6 +171,24 @@ export default function Home() {
             className="mt-4"
           >
             Clear Filters
+          </Button>
+        )}
+        {favorites.size > 0 && (
+          <Button
+            onClick={handleClearFavorites}
+            variant="outlined"
+            sx={{
+              borderColor: "#4081EC",
+              color: "#4081EC",
+              "&:hover": {
+                borderColor: "#4081EC",
+                backgroundColor: "#4081EC",
+                color: "white",
+              },
+            }}
+            className="mt-4 ml-2"
+          >
+            Clear Favorites
           </Button>
         )}
       </div>

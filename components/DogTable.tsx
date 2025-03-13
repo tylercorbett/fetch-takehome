@@ -25,6 +25,7 @@ interface DogTableProps {
   currentDogs: Dog[];
   rowsPerPage: number;
   totalDogs: number;
+  sortedDogs: Dog[];
 }
 
 const DogTable = ({
@@ -37,6 +38,7 @@ const DogTable = ({
   currentDogs,
   rowsPerPage,
   totalDogs,
+  sortedDogs,
 }: DogTableProps) => {
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>

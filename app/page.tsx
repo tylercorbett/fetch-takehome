@@ -160,11 +160,11 @@ export default function Home() {
             onClick={handleClearFilters}
             variant="outlined"
             sx={{
-              borderColor: "#4081EC",
-              color: "#4081EC",
+              borderColor: "red",
+              color: "red",
               "&:hover": {
-                borderColor: "#4081EC",
-                backgroundColor: "#4081EC",
+                borderColor: "red",
+                backgroundColor: "red",
                 color: "white",
               },
             }}
@@ -178,11 +178,11 @@ export default function Home() {
             onClick={handleClearFavorites}
             variant="outlined"
             sx={{
-              borderColor: "#4081EC",
-              color: "#4081EC",
+              borderColor: "red",
+              color: "red",
               "&:hover": {
-                borderColor: "#4081EC",
-                backgroundColor: "#4081EC",
+                borderColor: "red",
+                backgroundColor: "red",
                 color: "white",
               },
             }}

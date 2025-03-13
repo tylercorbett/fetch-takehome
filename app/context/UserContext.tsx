@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { login as apiLogin } from "../api/auth";
+import { login as apiLogin, logout as apiLogout } from "../api/auth";
 
 interface UserContextType {
   user: {
@@ -9,6 +9,7 @@ interface UserContextType {
   } | null;
   isAuthenticated: boolean;
   login: (name: string, email: string) => Promise<boolean>;
+  logout: () => Promise<boolean>;
   setUser: (user: { email: string; name: string } | null) => void;
 }
 
@@ -35,8 +36,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const logout = async () => {
+    try {
+      const success = await apiLogout();
+      if (success) {
+        setUser(null);
+        setIsAuthenticated(false);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Logout failed:", error);
+      return false;
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, isAuthenticated, login, setUser }}>
+    <UserContext.Provider
+      value={{ user, isAuthenticated, login, logout, setUser }}
+    >
       {children}
     </UserContext.Provider>
   );

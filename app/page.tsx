@@ -4,7 +4,7 @@ import { Dog } from "../types/Dog";
 import DogFilter from "../components/DogFilter";
 import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
-import { Typography } from "@mui/material";
+import { Typography, Box } from "@mui/material";
 import { useUser } from "./context/UserContext";
 import { useRouter } from "next/navigation";
 
@@ -94,7 +94,7 @@ const sampleDogs: Dog[] = [
 const ROWS_PER_PAGE = 6;
 
 export default function Home() {
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -163,12 +163,39 @@ export default function Home() {
     page * ROWS_PER_PAGE + ROWS_PER_PAGE
   );
 
+  const handleLogout = async () => {
+    router.push("/login");
+    await logout();
+  };
+
   return (
     <main className="p-12 bg-off-white min-h-screen">
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        <Typography variant="h6">Welcome, {user.name}!</Typography>
+        <Button
+          onClick={handleLogout}
+          variant="outlined"
+          sx={{
+            borderColor: "red",
+            color: "red",
+            "&:hover": {
+              borderColor: "red",
+              backgroundColor: "red",
+              color: "white",
+            },
+          }}
+        >
+          Logout
+        </Button>
+      </Box>
       <div className="mb-6">
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          Welcome, {user.name}!
-        </Typography>
         <DogFilter
           breeds={breeds}
           selectedBreeds={selectedBreeds}

@@ -9,6 +9,7 @@ import { useUser } from "./context/UserContext";
 import { useRouter } from "next/navigation";
 import { searchDogs } from "./api/dogs/searchDogs";
 import { postDogs } from "./api/dogs/postDogs";
+import { getDogBreeds } from "./api/dogs/getDogBreeds";
 import type { DogSearchResponse } from "./api/dogs/searchDogs";
 
 const ROWS_PER_PAGE = 6;
@@ -24,6 +25,7 @@ export default function Home() {
   const [page, setPage] = useState(0);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isLoading, setIsLoading] = useState(true);
+  const [breeds, setBreeds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -31,10 +33,13 @@ export default function Home() {
       return;
     }
 
-    const fetchDogs = async () => {
+    const fetchData = async () => {
       try {
         setError("");
         setIsLoading(true);
+
+        const breedsList = await getDogBreeds();
+        setBreeds(breedsList);
 
         const results = await searchDogs({ size: 100 });
         setDogResults(results);
@@ -45,14 +50,14 @@ export default function Home() {
           setFetchedDogs(dogDetails);
         }
       } catch (err) {
-        setError("Failed to fetch dogs. Please try again later.");
-        console.error("Error fetching dogs:", err);
+        setError("Failed to fetch data. Please try again later.");
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchDogs();
+    fetchData();
   }, [user, router]);
 
   if (!user) {
@@ -100,8 +105,6 @@ export default function Home() {
   const handleClearFavorites = () => {
     setFavorites(new Set());
   };
-
-  const breeds = Array.from(new Set(fetchedDogs.map((dog) => dog.breed)));
 
   const filteredDogs = selectedBreeds.length
     ? fetchedDogs.filter((dog) => selectedBreeds.includes(dog.breed))

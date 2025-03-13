@@ -13,6 +13,8 @@ import DogTableCell from "./DogTableCell";
 import { useState } from "react";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 interface DogTableProps {
   dogs: Dog[];
@@ -23,6 +25,7 @@ const ROWS_PER_PAGE = 6;
 const DogTable = ({ dogs }: DogTableProps) => {
   const [page, setPage] = useState(0);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
@@ -30,6 +33,18 @@ const DogTable = ({ dogs }: DogTableProps) => {
 
   const handleSortToggle = () => {
     setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+  };
+
+  const handleFavoriteToggle = (id: string) => {
+    setFavorites((prevFavorites) => {
+      const newFavorites = new Set(prevFavorites);
+      if (newFavorites.has(id)) {
+        newFavorites.delete(id);
+      } else {
+        newFavorites.add(id);
+      }
+      return newFavorites;
+    });
   };
 
   const sortedDogs = [...dogs].sort((a, b) => {
@@ -51,6 +66,7 @@ const DogTable = ({ dogs }: DogTableProps) => {
         <Table sx={{ minWidth: 650 }} aria-label="dog table">
           <TableHead>
             <TableRow sx={{ backgroundColor: "#3A0F36" }}>
+              <DogTableCell isHeader sx={{ width: "3rem" }}></DogTableCell>
               <DogTableCell isHeader>Image</DogTableCell>
               <DogTableCell isHeader>Name</DogTableCell>
               <DogTableCell isHeader>Age</DogTableCell>
@@ -73,6 +89,15 @@ const DogTable = ({ dogs }: DogTableProps) => {
                 key={dog.id}
                 sx={{ backgroundColor: index % 2 === 0 ? "white" : "#f8f8f8" }}
               >
+                <DogTableCell sx={{ width: "3rem" }}>
+                  <IconButton onClick={() => handleFavoriteToggle(dog.id)}>
+                    {favorites.has(dog.id) ? (
+                      <FavoriteIcon sx={{ color: "pink" }} />
+                    ) : (
+                      <FavoriteBorderIcon />
+                    )}
+                  </IconButton>
+                </DogTableCell>
                 <DogTableCell>
                   <img
                     src={dog.img}

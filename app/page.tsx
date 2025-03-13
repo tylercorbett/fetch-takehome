@@ -2,8 +2,11 @@
 import DogTable from "../components/DogTable";
 import { Dog } from "../types/Dog";
 import DogFilter from "../components/DogFilter";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
+import { Typography } from "@mui/material";
+import { useUser } from "./context/UserContext";
+import { useRouter } from "next/navigation";
 
 const sampleDogs: Dog[] = [
   {
@@ -91,6 +94,19 @@ const sampleDogs: Dog[] = [
 const ROWS_PER_PAGE = 6;
 
 export default function Home() {
+  const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    }
+  }, [user, router]);
+
+  if (!user) {
+    return null;
+  }
+
   const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
@@ -150,6 +166,9 @@ export default function Home() {
   return (
     <main className="p-12 bg-off-white min-h-screen">
       <div className="mb-6">
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Welcome, {user.name}!
+        </Typography>
         <DogFilter
           breeds={breeds}
           selectedBreeds={selectedBreeds}

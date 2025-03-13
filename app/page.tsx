@@ -169,7 +169,7 @@ export default function Home() {
   };
 
   return (
-    <main className="p-12 bg-off-white min-h-screen">
+    <main className="p-12 bg-off-white min-h-screen min-w-fit">
       <Box
         sx={{
           display: "flex",

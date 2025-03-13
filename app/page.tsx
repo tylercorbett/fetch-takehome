@@ -87,10 +87,7 @@ const sampleDogs: Dog[] = [
 
 export default function Home() {
   return (
-    <main
-      className="p-12"
-      style={{ backgroundColor: "#f0f0f0", minHeight: "100vh" }}
-    >
+    <main className="p-12 bg-off-white min-h-screen">
       <DogTable dogs={sampleDogs} />
     </main>
   );

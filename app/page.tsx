@@ -88,6 +88,8 @@ const sampleDogs: Dog[] = [
   },
 ];
 
+const ROWS_PER_PAGE = 6;
+
 export default function Home() {
   const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -128,6 +130,19 @@ export default function Home() {
     ? sampleDogs.filter((dog) => selectedBreeds.includes(dog.breed))
     : sampleDogs;
 
+  const sortedDogs = [...filteredDogs].sort((a, b) => {
+    if (sortOrder === "asc") {
+      return a.breed.localeCompare(b.breed);
+    } else {
+      return b.breed.localeCompare(a.breed);
+    }
+  });
+
+  const currentDogs = sortedDogs.slice(
+    page * ROWS_PER_PAGE,
+    page * ROWS_PER_PAGE + ROWS_PER_PAGE
+  );
+
   return (
     <main className="p-12 bg-off-white min-h-screen">
       <div className="mb-6">
@@ -156,13 +171,16 @@ export default function Home() {
         )}
       </div>
       <DogTable
-        dogs={filteredDogs}
+        totalDogs={sortedDogs.length}
         favorites={favorites}
         onFavoriteToggle={handleFavoriteToggle}
         page={page}
         sortOrder={sortOrder}
         onPageChange={handlePageChange}
         onSortToggle={handleSortToggle}
+        sortedDogs={sortedDogs}
+        currentDogs={currentDogs}
+        rowsPerPage={ROWS_PER_PAGE}
       />
     </main>
   );

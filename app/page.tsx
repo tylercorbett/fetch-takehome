@@ -4,9 +4,11 @@ import { Dog } from "../types/Dog";
 import DogFilter from "../components/DogFilter";
 import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, Alert } from "@mui/material";
 import { useUser } from "./context/UserContext";
 import { useRouter } from "next/navigation";
+import { searchDogs } from "./api/dogs/searchDogs";
+import type { DogSearchResponse } from "./api/dogs/searchDogs";
 
 const sampleDogs: Dog[] = [
   {
@@ -96,21 +98,49 @@ const ROWS_PER_PAGE = 6;
 export default function Home() {
   const { user, logout } = useUser();
   const router = useRouter();
+  const [dogResults, setDogResults] = useState<DogSearchResponse | null>(null);
+  const [error, setError] = useState<string>("");
+  const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(0);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
       router.push("/login");
+      return;
     }
+
+    const fetchDogs = async () => {
+      try {
+        setError("");
+        setIsLoading(true);
+        const results = await searchDogs();
+        setDogResults(results);
+        console.log("Dog search results:", results);
+      } catch (err) {
+        setError("Failed to fetch dogs. Please try again later.");
+        console.error("Error fetching dogs:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDogs();
   }, [user, router]);
 
   if (!user) {
     return null;
   }
 
-  const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [page, setPage] = useState(0);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  if (isLoading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography>Loading dogs...</Typography>
+      </Box>
+    );
+  }
 
   const handleBreedChange = (breeds: string[]) => {
     setSelectedBreeds(breeds);
@@ -175,7 +205,7 @@ export default function Home() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 4,
+          mb: 2,
         }}
       >
         <Typography variant="h6">Welcome, {user.name}!</Typography>
@@ -195,6 +225,19 @@ export default function Home() {
           Logout
         </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {dogResults && (
+        <Typography variant="body1" sx={{ mb: 2 }}>
+          Found {dogResults.total} dogs in search results
+        </Typography>
+      )}
+
       <div className="mb-6">
         <DogFilter
           breeds={breeds}
@@ -238,6 +281,7 @@ export default function Home() {
           </Button>
         )}
       </div>
+
       <DogTable
         totalDogs={sortedDogs.length}
         favorites={favorites}

@@ -65,7 +65,7 @@ const DogTable = ({ dogs }: DogTableProps) => {
       <TableContainer sx={{ backgroundColor: "white" }}>
         <Table sx={{ minWidth: 650 }} aria-label="dog table">
           <TableHead>
-            <TableRow sx={{ backgroundColor: "#3A0F36" }}>
+            <TableRow sx={{ backgroundColor: "#4081EC" }}>
               <DogTableCell isHeader sx={{ width: "3rem" }}></DogTableCell>
               <DogTableCell isHeader>Image</DogTableCell>
               <DogTableCell isHeader>Name</DogTableCell>

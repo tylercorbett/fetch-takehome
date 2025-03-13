@@ -3,6 +3,7 @@ import DogTable from "../components/DogTable";
 import { Dog } from "../types/Dog";
 import DogFilter from "../components/DogFilter";
 import React, { useState } from "react";
+import Button from "@mui/material/Button";
 
 const sampleDogs: Dog[] = [
   {
@@ -94,6 +95,10 @@ export default function Home() {
     setSelectedBreeds(breeds);
   };
 
+  const handleClearFilters = () => {
+    setSelectedBreeds([]);
+  };
+
   const breeds = Array.from(new Set(sampleDogs.map((dog) => dog.breed)));
 
   const filteredDogs = selectedBreeds.length
@@ -108,6 +113,24 @@ export default function Home() {
           selectedBreeds={selectedBreeds}
           onChange={handleBreedChange}
         />
+        {selectedBreeds.length > 0 && (
+          <Button
+            onClick={handleClearFilters}
+            variant="outlined"
+            sx={{
+              borderColor: "#4081EC",
+              color: "#4081EC",
+              "&:hover": {
+                borderColor: "#4081EC",
+                backgroundColor: "#4081EC",
+                color: "white",
+              },
+            }}
+            className="mt-4"
+          >
+            Clear Filters
+          </Button>
+        )}
       </div>
       <DogTable dogs={filteredDogs} />
     </main>

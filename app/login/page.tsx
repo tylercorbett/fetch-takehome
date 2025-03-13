@@ -1,19 +1,30 @@
 "use client";
 import React, { useState } from "react";
-import { TextField, Button, Typography, Box } from "@mui/material";
+import { TextField, Button, Typography, Box, Alert } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useUser } from "../context/UserContext";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const router = useRouter();
-  const { setUser } = useUser();
+  const { login } = useUser();
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setUser({ email, name });
-    router.push("/");
+    setError("");
+
+    try {
+      const success = await login(name, email);
+      if (success) {
+        router.push("/");
+      } else {
+        setError("Login failed. Please try again.");
+      }
+    } catch (error) {
+      setError("An error occurred during login. Please try again.");
+    }
   };
 
   return (
@@ -43,6 +54,11 @@ export default function Login() {
         <Typography variant="h4" gutterBottom align="center">
           Welcome to Dog Finder
         </Typography>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <TextField
           label="Email"
           type="email"

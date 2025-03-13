@@ -1,6 +1,8 @@
 "use client";
 import DogTable from "../components/DogTable";
 import { Dog } from "../types/Dog";
+import DogFilter from "../components/DogFilter";
+import React from "react";
 
 const sampleDogs: Dog[] = [
   {
@@ -86,8 +88,23 @@ const sampleDogs: Dog[] = [
 ];
 
 export default function Home() {
+  const [selectedBreeds, setSelectedBreeds] = React.useState<string[]>([]);
+
+  const handleBreedChange = (breeds: string[]) => {
+    setSelectedBreeds(breeds);
+  };
+
+  const breeds = Array.from(new Set(sampleDogs.map((dog) => dog.breed)));
+
   return (
     <main className="p-12 bg-off-white min-h-screen">
+      <div className="mb-6">
+        <DogFilter
+          breeds={breeds}
+          selectedBreeds={selectedBreeds}
+          onChange={handleBreedChange}
+        />
+      </div>
       <DogTable dogs={sampleDogs} />
     </main>
   );

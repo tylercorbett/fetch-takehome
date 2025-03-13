@@ -20,11 +20,10 @@ const ROWS_PER_PAGE = 6;
 const DogTable = ({ dogs }: DogTableProps) => {
   const [page, setPage] = useState(0);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (event: any, newPage: number) => {
     setPage(newPage);
   };
 
-  // Calculate the current page's data
   const currentDogs = dogs.slice(
     page * ROWS_PER_PAGE,
     page * ROWS_PER_PAGE + ROWS_PER_PAGE

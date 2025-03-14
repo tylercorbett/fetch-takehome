@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { searchDogs } from "./api/dogs/searchDogs";
 import { postDogs } from "./api/dogs/postDogs";
 import { getDogBreeds } from "./api/dogs/getDogBreeds";
+import { postDogsMatch } from "./api/dogs/postDogsMatch";
 import type { DogSearchResponse } from "./api/dogs/searchDogs";
 
 const ROWS_PER_PAGE = 6;
@@ -26,6 +27,9 @@ export default function Home() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isLoading, setIsLoading] = useState(true);
   const [breeds, setBreeds] = useState<string[]>([]);
+  const [matchedDogId, setMatchedDogId] = useState<string | null>(null);
+  const [isMatchLoading, setIsMatchLoading] = useState(false);
+  const [matchError, setMatchError] = useState<string>("");
 
   useEffect(() => {
     if (!user) {
@@ -104,6 +108,26 @@ export default function Home() {
 
   const handleClearFavorites = () => {
     setFavorites(new Set());
+  };
+
+  const handleGetMatch = async () => {
+    const favoriteIds = Array.from(favorites);
+    if (favoriteIds.length === 0) {
+      setMatchError("Please favorite at least one dog before getting a match");
+      return;
+    }
+
+    try {
+      setIsMatchLoading(true);
+      setMatchError("");
+      const { match } = await postDogsMatch(favoriteIds);
+      setMatchedDogId(match);
+    } catch (err) {
+      setMatchError("Failed to get a match. Please try again later.");
+      console.error("Error getting match:", err);
+    } finally {
+      setIsMatchLoading(false);
+    }
   };
 
   const filteredDogs = selectedBreeds.length
@@ -203,24 +227,51 @@ export default function Home() {
             </Button>
           )}
           {favorites.size > 0 && (
-            <Button
-              onClick={handleClearFavorites}
-              variant="outlined"
-              sx={{
-                borderColor: "red",
-                color: "red",
-                "&:hover": {
+            <>
+              <Button
+                onClick={handleClearFavorites}
+                variant="outlined"
+                sx={{
                   borderColor: "red",
-                  backgroundColor: "red",
-                  color: "white",
-                },
-              }}
-              className="mt-4 ml-2"
-            >
-              Clear Favorites
-            </Button>
+                  color: "red",
+                  "&:hover": {
+                    borderColor: "red",
+                    backgroundColor: "red",
+                    color: "white",
+                  },
+                }}
+                className="mt-4"
+              >
+                Clear Favorites
+              </Button>
+              <Button
+                onClick={handleGetMatch}
+                variant="contained"
+                color="primary"
+                disabled={isMatchLoading}
+                className="mt-4"
+              >
+                {isMatchLoading ? "Getting Match..." : "Get Match"}
+              </Button>
+            </>
           )}
         </div>
+        {matchError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {matchError}
+          </Alert>
+        )}
+        {matchedDogId && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            You've been matched with dog ID: {matchedDogId}!
+            {fetchedDogs.find((dog) => dog.id === matchedDogId) && (
+              <Typography sx={{ mt: 1 }}>
+                Breed:{" "}
+                {fetchedDogs.find((dog) => dog.id === matchedDogId)?.breed}
+              </Typography>
+            )}
+          </Alert>
+        )}
       </div>
 
       {fetchedDogs.length > 0 ? (

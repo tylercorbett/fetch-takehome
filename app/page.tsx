@@ -122,6 +122,16 @@ export default function Home() {
 
   const handlePageChange = (event: unknown, newPage: number) => {
     setPage(newPage);
+
+    const totalPages = Math.ceil(sortedDogs.length / ROWS_PER_PAGE);
+
+    const isLastPage = newPage === totalPages - 1;
+    if (isLastPage) {
+      console.log("at last page");
+      // load more dogs
+      // check if we have more ids to load after the current page
+      // if so, load them
+    }
   };
 
   const handleSortToggle = () => {

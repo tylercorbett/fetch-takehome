@@ -317,11 +317,11 @@ export default function Home() {
           dogIDs && (
             <>
               <Typography variant="body1">
-                Found {dogIDs.total} dogs in search results
+                Found {dogIDs.total.toLocaleString()} dogs in search results
               </Typography>
               {fetchedDogs.length > 0 && (
                 <Typography variant="body2">
-                  Showing details for {fetchedDogs.length} dogs
+                  Showing details for {fetchedDogs.length.toLocaleString()} dogs
                 </Typography>
               )}
             </>

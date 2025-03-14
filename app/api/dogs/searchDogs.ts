@@ -1,6 +1,3 @@
-import { API_BASE_URL } from "../../config";
-import { API_PATHS } from "../constants";
-
 export interface DogSearchResponse {
   resultIds: string[];
   total: number;

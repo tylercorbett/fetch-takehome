@@ -22,8 +22,9 @@ export default function Login() {
       } else {
         setError("Login failed. Please try again.");
       }
-    } catch (error) {
+    } catch (e) {
       setError("An error occurred during login. Please try again.");
+      console.error("Login error:", e);
     }
   };
 

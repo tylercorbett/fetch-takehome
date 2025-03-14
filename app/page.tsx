@@ -17,7 +17,10 @@ import { searchDogs } from "./api/dogs/searchDogs";
 import { postDogs } from "./api/dogs/postDogs";
 import { getDogBreeds } from "./api/dogs/getDogBreeds";
 import { postDogsMatch } from "./api/dogs/postDogsMatch";
-import type { DogSearchResponse } from "./api/dogs/searchDogs";
+import type {
+  DogSearchResponse,
+  SearchDogsParams,
+} from "./api/dogs/searchDogs";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 import CloseIcon from "@mui/icons-material/Close";
@@ -85,7 +88,7 @@ export default function Home() {
         setError("");
         setIsFilterLoading(true);
 
-        const searchParams: any = {
+        const searchParams: SearchDogsParams = {
           size: 100,
           breeds: selectedBreeds,
         };
@@ -527,7 +530,7 @@ export default function Home() {
           >
             <Box>
               <Typography variant="h6" sx={{ mb: 1 }}>
-                You've been matched with {matchedDog.name}!
+                You&apos;ve been matched with {matchedDog.name}!
               </Typography>
               <Box
                 sx={{

@@ -297,6 +297,14 @@ export default function Home() {
         </Alert>
       )}
 
+      <div className="mb-4">
+        <DogFilter
+          breeds={breeds}
+          selectedBreeds={selectedBreeds}
+          onChange={handleBreedChange}
+        />
+      </div>
+
       <Box sx={{ mb: 2, display: "flex", flexDirection: "column", gap: 1 }}>
         {isFilterLoading || isLoadingMore ? (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -322,13 +330,6 @@ export default function Home() {
       </Box>
 
       <div className="mb-6">
-        <div className="mb-4">
-          <DogFilter
-            breeds={breeds}
-            selectedBreeds={selectedBreeds}
-            onChange={handleBreedChange}
-          />
-        </div>
         <div className="flex gap-2">
           {selectedBreeds.length > 0 && (
             <Button

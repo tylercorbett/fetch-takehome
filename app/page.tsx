@@ -28,7 +28,7 @@ export default function Home() {
   const { width, height } = useWindowSize();
   const { user, logout } = useUser();
   const router = useRouter();
-  const [dogResults, setDogResults] = useState<DogSearchResponse | null>(null);
+  const [dogIDs, setDogIDs] = useState<DogSearchResponse | null>(null);
   const [fetchedDogs, setFetchedDogs] = useState<Dog[]>([]);
   const [error, setError] = useState<string>("");
   const [selectedBreeds, setSelectedBreeds] = useState<string[]>([]);
@@ -37,6 +37,8 @@ export default function Home() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [breeds, setBreeds] = useState<string[]>([]);
   const [matchedDogId, setMatchedDogId] = useState<string | null>(null);
   const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
@@ -78,7 +80,7 @@ export default function Home() {
           size: 100,
           breeds: selectedBreeds,
         });
-        setDogResults(results);
+        setDogIDs(results);
 
         if (results.resultIds.length > 0) {
           const dogIds = results.resultIds.slice(0, 100);
@@ -120,17 +122,37 @@ export default function Home() {
     setPage(0);
   };
 
-  const handlePageChange = (event: unknown, newPage: number) => {
+  const handlePageChange = async (event: unknown, newPage: number) => {
     setPage(newPage);
 
     const totalPages = Math.ceil(sortedDogs.length / ROWS_PER_PAGE);
 
     const isLastPage = newPage === totalPages - 1;
-    if (isLastPage) {
-      console.log("at last page");
-      // load more dogs
-      // check if we have more ids to load after the current page
-      // if so, load them
+    if (isLastPage && dogIDs?.next) {
+      try {
+        setIsLoadingMore(true);
+        setError("");
+
+        // Get next batch of dog IDs using the cursor
+        const nextResults = await searchDogs({
+          size: 100,
+          breeds: selectedBreeds,
+          from: dogIDs.next,
+        });
+
+        // If we get new dog IDs, fetch the details and add them to the existing list
+        if (nextResults.resultIds.length > 0) {
+          const newDogDetails = await postDogs(nextResults.resultIds);
+
+          setFetchedDogs((prevDogs) => [...prevDogs, ...newDogDetails]);
+          setDogIDs(nextResults);
+        }
+      } catch (err) {
+        setError("Failed to load more dogs. Please try again later.");
+        console.error("Error loading more dogs:", err);
+      } finally {
+        setIsLoadingMore(false);
+      }
     }
   };
 
@@ -258,16 +280,18 @@ export default function Home() {
       )}
 
       <Box sx={{ mb: 2, display: "flex", flexDirection: "column", gap: 1 }}>
-        {isFilterLoading ? (
+        {isFilterLoading || isLoadingMore ? (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography variant="body1">Loading dogs</Typography>
+            <Typography variant="body1">
+              {isLoadingMore ? "Loading more dogs..." : "Loading dogs"}
+            </Typography>
             <CircularProgress size={20} />
           </Box>
         ) : (
-          dogResults && (
+          dogIDs && (
             <>
               <Typography variant="body1">
-                Found {dogResults.total} dogs in search results
+                Found {dogIDs.total} dogs in search results
               </Typography>
               {fetchedDogs.length > 0 && (
                 <Typography variant="body2">

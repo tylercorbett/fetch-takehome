@@ -40,9 +40,7 @@ export default function Home() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [currentCursor, setCurrentCursor] = useState<string | null>(null);
   const [breeds, setBreeds] = useState<string[]>([]);
-  const [matchedDogId, setMatchedDogId] = useState<string | null>(null);
   const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [matchError, setMatchError] = useState<string>("");
@@ -54,6 +52,7 @@ export default function Home() {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
   const [locationDetails, setLocationDetails] = useState<Location | null>(null);
+  const [nearbyLocations, setNearbyLocations] = useState<Location[]>([]);
   const [searchNearMe, setSearchNearMe] = useState(false);
 
   useEffect(() => {
@@ -91,9 +90,11 @@ export default function Home() {
           breeds: selectedBreeds,
         };
 
-        // Add zip code to search params if searching near me and we have location details
-        if (searchNearMe && locationDetails) {
-          searchParams.zipCodes = [locationDetails.zip_code];
+        // Add zip codes to search params if searching near me and we have locations
+        if (searchNearMe && nearbyLocations.length > 0) {
+          searchParams.zipCodes = nearbyLocations
+            .slice(0, 20)
+            .map((loc) => loc.zip_code);
         }
 
         const results = await searchDogs(searchParams);
@@ -115,7 +116,7 @@ export default function Home() {
     };
 
     fetchDogs();
-  }, [selectedBreeds, searchNearMe, locationDetails]);
+  }, [selectedBreeds, searchNearMe, nearbyLocations]);
 
   if (!user) {
     return null;
@@ -234,7 +235,6 @@ export default function Home() {
 
       // Get the match
       const { match } = await postDogsMatch(favoriteIds);
-      setMatchedDogId(match);
 
       // Get the matched dog's details
       const matchedDogDetails = await postDogs([match]);
@@ -254,7 +254,6 @@ export default function Home() {
 
   const handleClearMatch = () => {
     setMatchedDog(null);
-    setMatchedDogId(null);
   };
 
   const handleGetLocation = async () => {
@@ -291,10 +290,14 @@ export default function Home() {
 
       const locationResponse = await searchLocations({
         geoBoundingBox: boundingBox,
+        size: 20, // Get up to 20 nearby locations
       });
 
       if (locationResponse.results.length > 0) {
+        // Store the first location as the primary location for display
         setLocationDetails(locationResponse.results[0]);
+        // Store all locations for searching
+        setNearbyLocations(locationResponse.results);
       }
     } catch (err) {
       setLocationError("Unable to retrieve your location");
@@ -407,7 +410,10 @@ export default function Home() {
                     }
                   }}
                 />
-                <label htmlFor="nearMe">Search for dogs near me</label>
+                <label htmlFor="nearMe">
+                  Search for dogs in {nearbyLocations.length} nearby{" "}
+                  {nearbyLocations.length === 1 ? "location" : "locations"}
+                </label>
               </Box>
             </>
           ) : isLoadingLocation ? (

@@ -4,7 +4,13 @@ import { Dog } from "../types/Dog";
 import DogFilter from "../components/DogFilter";
 import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
-import { Typography, Box, Alert, CircularProgress } from "@mui/material";
+import {
+  Typography,
+  Box,
+  Alert,
+  CircularProgress,
+  IconButton,
+} from "@mui/material";
 import { useUser } from "./context/UserContext";
 import { useRouter } from "next/navigation";
 import { searchDogs } from "./api/dogs/searchDogs";
@@ -14,6 +20,7 @@ import { postDogsMatch } from "./api/dogs/postDogsMatch";
 import type { DogSearchResponse } from "./api/dogs/searchDogs";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
+import CloseIcon from "@mui/icons-material/Close";
 
 const ROWS_PER_PAGE = 6;
 
@@ -168,6 +175,11 @@ export default function Home() {
     } finally {
       setIsMatchLoading(false);
     }
+  };
+
+  const handleClearMatch = () => {
+    setMatchedDog(null);
+    setMatchedDogId(null);
   };
 
   const filteredDogs = selectedBreeds.length
@@ -327,7 +339,18 @@ export default function Home() {
               "& .MuiAlert-message": {
                 width: "100%",
               },
+              position: "relative",
             }}
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={handleClearMatch}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
           >
             <Box>
               <Typography variant="h6" sx={{ mb: 1 }}>

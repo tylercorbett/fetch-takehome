@@ -4,7 +4,7 @@ import { Dog } from "../types/Dog";
 import DogFilter from "../components/DogFilter";
 import React, { useState, useEffect } from "react";
 import Button from "@mui/material/Button";
-import { Typography, Box, Alert } from "@mui/material";
+import { Typography, Box, Alert, CircularProgress } from "@mui/material";
 import { useUser } from "./context/UserContext";
 import { useRouter } from "next/navigation";
 import { searchDogs } from "./api/dogs/searchDogs";
@@ -28,7 +28,8 @@ export default function Home() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(0);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [breeds, setBreeds] = useState<string[]>([]);
   const [matchedDogId, setMatchedDogId] = useState<string | null>(null);
   const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
@@ -45,7 +46,7 @@ export default function Home() {
     const fetchData = async () => {
       try {
         setError("");
-        setIsLoading(true);
+        setIsInitialLoading(true);
 
         const breedsList = await getDogBreeds();
         setBreeds(breedsList);
@@ -53,7 +54,7 @@ export default function Home() {
         setError("Failed to fetch data. Please try again later.");
         console.error("Error fetching data:", err);
       } finally {
-        setIsLoading(false);
+        setIsInitialLoading(false);
       }
     };
 
@@ -64,7 +65,7 @@ export default function Home() {
     const fetchDogs = async () => {
       try {
         setError("");
-        setIsLoading(true);
+        setIsFilterLoading(true);
 
         const results = await searchDogs({
           size: 100,
@@ -83,7 +84,7 @@ export default function Home() {
         setError("Failed to fetch dogs. Please try again later.");
         console.error("Error fetching dogs:", err);
       } finally {
-        setIsLoading(false);
+        setIsFilterLoading(false);
       }
     };
 
@@ -94,7 +95,7 @@ export default function Home() {
     return null;
   }
 
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography>Loading dogs...</Typography>
@@ -234,18 +235,27 @@ export default function Home() {
         </Alert>
       )}
 
-      {dogResults && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="body1">
-            Found {dogResults.total} dogs in search results
-          </Typography>
-          {fetchedDogs.length > 0 && (
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              Showing details for {fetchedDogs.length} dogs
-            </Typography>
-          )}
-        </Box>
-      )}
+      <Box sx={{ mb: 2, display: "flex", flexDirection: "column", gap: 1 }}>
+        {isFilterLoading ? (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography variant="body1">Loading dogs</Typography>
+            <CircularProgress size={20} />
+          </Box>
+        ) : (
+          dogResults && (
+            <>
+              <Typography variant="body1">
+                Found {dogResults.total} dogs in search results
+              </Typography>
+              {fetchedDogs.length > 0 && (
+                <Typography variant="body2">
+                  Showing details for {fetchedDogs.length} dogs
+                </Typography>
+              )}
+            </>
+          )
+        )}
+      </Box>
 
       <div className="mb-6">
         <div className="mb-4">

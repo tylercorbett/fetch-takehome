@@ -49,15 +49,6 @@ export default function Home() {
 
         const breedsList = await getDogBreeds();
         setBreeds(breedsList);
-
-        const results = await searchDogs({ size: 100 });
-        setDogResults(results);
-
-        if (results.resultIds.length > 0) {
-          const dogIds = results.resultIds.slice(0, 100);
-          const dogDetails = await postDogs(dogIds);
-          setFetchedDogs(dogDetails);
-        }
       } catch (err) {
         setError("Failed to fetch data. Please try again later.");
         console.error("Error fetching data:", err);
@@ -68,6 +59,36 @@ export default function Home() {
 
     fetchData();
   }, [user, router]);
+
+  useEffect(() => {
+    const fetchDogs = async () => {
+      try {
+        setError("");
+        setIsLoading(true);
+
+        const results = await searchDogs({
+          size: 100,
+          breeds: selectedBreeds,
+        });
+        setDogResults(results);
+
+        if (results.resultIds.length > 0) {
+          const dogIds = results.resultIds.slice(0, 100);
+          const dogDetails = await postDogs(dogIds);
+          setFetchedDogs(dogDetails);
+        } else {
+          setFetchedDogs([]);
+        }
+      } catch (err) {
+        setError("Failed to fetch dogs. Please try again later.");
+        console.error("Error fetching dogs:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDogs();
+  }, [selectedBreeds]);
 
   if (!user) {
     return null;

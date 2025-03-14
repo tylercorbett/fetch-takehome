@@ -10,6 +10,7 @@ export interface DogSearchResponse {
 
 export interface SearchDogsParams {
   size?: number;
+  breeds?: string[];
 }
 
 export async function searchDogs(
@@ -19,6 +20,12 @@ export async function searchDogs(
     const searchParams = new URLSearchParams();
 
     searchParams.append("size", (params.size || 100).toString());
+
+    if (params.breeds && params.breeds.length > 0) {
+      params.breeds.forEach((breed) => {
+        searchParams.append("breeds", breed);
+      });
+    }
 
     const url = `${API_BASE_URL}${
       API_PATHS.DOGS

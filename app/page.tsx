@@ -45,6 +45,12 @@ export default function Home() {
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [matchError, setMatchError] = useState<string>("");
   const [showConfetti, setShowConfetti] = useState(false);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string>("");
 
   useEffect(() => {
     if (!user) {
@@ -240,6 +246,32 @@ export default function Home() {
     setMatchedDogId(null);
   };
 
+  const handleGetLocation = () => {
+    setIsLoadingLocation(true);
+    setLocationError("");
+
+    if (!navigator.geolocation) {
+      setLocationError("Geolocation is not supported by your browser");
+      setIsLoadingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+        setIsLoadingLocation(false);
+      },
+      (error) => {
+        setLocationError("Unable to retrieve your location");
+        console.error("Geolocation error:", error);
+        setIsLoadingLocation(false);
+      }
+    );
+  };
+
   const filteredDogs = selectedBreeds.length
     ? fetchedDogs.filter((dog) => selectedBreeds.includes(dog.breed))
     : fetchedDogs;
@@ -306,6 +338,34 @@ export default function Home() {
       </div>
 
       <Box sx={{ mb: 2, display: "flex", flexDirection: "column", gap: 1 }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Button
+            onClick={handleGetLocation}
+            variant="outlined"
+            disabled={isLoadingLocation}
+            sx={{
+              borderColor: "primary.main",
+              color: "primary.main",
+              "&:hover": {
+                borderColor: "primary.dark",
+                backgroundColor: "primary.main",
+                color: "white",
+              },
+            }}
+          >
+            {isLoadingLocation ? "Getting Location..." : "Get My Location"}
+          </Button>
+          {userLocation && (
+            <Typography variant="body2">
+              📍 {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)}
+            </Typography>
+          )}
+        </div>
+        {locationError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {locationError}
+          </Alert>
+        )}
         {isFilterLoading || isLoadingMore ? (
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography variant="body1">

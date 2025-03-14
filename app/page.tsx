@@ -54,6 +54,7 @@ export default function Home() {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
   const [locationDetails, setLocationDetails] = useState<Location | null>(null);
+  const [searchNearMe, setSearchNearMe] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -85,10 +86,17 @@ export default function Home() {
         setError("");
         setIsFilterLoading(true);
 
-        const results = await searchDogs({
+        const searchParams: any = {
           size: 100,
           breeds: selectedBreeds,
-        });
+        };
+
+        // Add zip code to search params if searching near me and we have location details
+        if (searchNearMe && locationDetails) {
+          searchParams.zipCodes = [locationDetails.zip_code];
+        }
+
+        const results = await searchDogs(searchParams);
         setDogIDs(results);
 
         if (results.resultIds.length > 0) {
@@ -107,7 +115,7 @@ export default function Home() {
     };
 
     fetchDogs();
-  }, [selectedBreeds]);
+  }, [selectedBreeds, searchNearMe, locationDetails]);
 
   if (!user) {
     return null;
@@ -381,14 +389,33 @@ export default function Home() {
             {isLoadingLocation ? "Getting Location..." : "Get My Location"}
           </Button>
           {locationDetails ? (
-            <Typography variant="body2">
-              📍 {locationDetails.city}, {locationDetails.state}
-            </Typography>
+            <>
+              <Typography variant="body2">
+                📍 {locationDetails.city}, {locationDetails.state}
+              </Typography>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, ml: 2 }}
+              >
+                <input
+                  type="checkbox"
+                  id="nearMe"
+                  checked={searchNearMe}
+                  onChange={(e) => {
+                    setSearchNearMe(e.target.checked);
+                    // Trigger a new search when the checkbox changes
+                    if (e.target.checked && !locationDetails) {
+                      handleGetLocation();
+                    }
+                  }}
+                />
+                <label htmlFor="nearMe">Search for dogs near me</label>
+              </Box>
+            </>
           ) : isLoadingLocation ? (
             <CircularProgress size={20} />
           ) : userLocation && !locationError ? (
             <Typography variant="body2" color="text.secondary">
-             Unable to locate city
+              Unable to locate city
             </Typography>
           ) : null}
         </div>

@@ -21,6 +21,8 @@ import type { DogSearchResponse } from "./api/dogs/searchDogs";
 import Confetti from "react-confetti";
 import { useWindowSize } from "react-use";
 import CloseIcon from "@mui/icons-material/Close";
+import { searchLocations } from "./api/locations/searchLocations";
+import type { Location } from "./types/Location";
 
 const ROWS_PER_PAGE = 6;
 
@@ -51,6 +53,7 @@ export default function Home() {
   } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string>("");
+  const [locationDetails, setLocationDetails] = useState<Location | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -246,9 +249,10 @@ export default function Home() {
     setMatchedDogId(null);
   };
 
-  const handleGetLocation = () => {
+  const handleGetLocation = async () => {
     setIsLoadingLocation(true);
     setLocationError("");
+    setLocationDetails(null);
 
     if (!navigator.geolocation) {
       setLocationError("Geolocation is not supported by your browser");
@@ -256,20 +260,41 @@ export default function Home() {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
-        setIsLoadingLocation(false);
-      },
-      (error) => {
-        setLocationError("Unable to retrieve your location");
-        console.error("Geolocation error:", error);
-        setIsLoadingLocation(false);
+    try {
+      const position = await new Promise<GeolocationPosition>(
+        (resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        }
+      );
+
+      const coords = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+      };
+      setUserLocation(coords);
+
+      // Search for location details using coordinates with a larger bounding box
+      const boundingBox = {
+        top: coords.lat + 0.5, // Approximately 55km north
+        bottom: coords.lat - 0.5, // Approximately 55km south
+        left: coords.lon - 0.5, // Approximately 55km west
+        right: coords.lon + 0.5, // Approximately 55km east
+      };
+
+      const locationResponse = await searchLocations({
+        geoBoundingBox: boundingBox,
+        size: 1,
+      });
+
+      if (locationResponse.results.length > 0) {
+        setLocationDetails(locationResponse.results[0]);
       }
-    );
+    } catch (err) {
+      setLocationError("Unable to retrieve your location");
+      console.error("Geolocation error:", err);
+    } finally {
+      setIsLoadingLocation(false);
+    }
   };
 
   const filteredDogs = selectedBreeds.length
@@ -355,11 +380,17 @@ export default function Home() {
           >
             {isLoadingLocation ? "Getting Location..." : "Get My Location"}
           </Button>
-          {userLocation && (
+          {locationDetails ? (
             <Typography variant="body2">
-              📍 {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)}
+              📍 {locationDetails.city}, {locationDetails.state}
             </Typography>
-          )}
+          ) : isLoadingLocation ? (
+            <CircularProgress size={20} />
+          ) : userLocation && !locationError ? (
+            <Typography variant="body2" color="text.secondary">
+              Finding your city...
+            </Typography>
+          ) : null}
         </div>
         {locationError && (
           <Alert severity="error" sx={{ mb: 2 }}>

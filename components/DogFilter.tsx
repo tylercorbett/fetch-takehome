@@ -23,7 +23,7 @@ const DogFilter: React.FC<DogFilterProps> = ({
         onChange(newValue as string[])
       }
       renderInput={(params) => (
-        <TextField {...params} label="Filter by Breed" variant="outlined" />
+        <TextField {...params} label="Breed" variant="outlined" />
       )}
     />
   );

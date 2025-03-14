@@ -407,6 +407,7 @@ export default function Home() {
                   checked={searchNearMe}
                   onChange={(e) => {
                     setSearchNearMe(e.target.checked);
+                    setPage(0);
                     // Trigger a new search when the checkbox changes
                     if (e.target.checked && !locationDetails) {
                       handleGetLocation();

@@ -11,7 +11,6 @@ export interface DogSearchResponse {
 export interface SearchDogsParams {
   size?: number;
   breeds?: string[];
-  from?: string;
 }
 
 export async function searchDogs(

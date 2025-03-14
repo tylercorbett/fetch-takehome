@@ -133,19 +133,20 @@ export default function Home() {
         setIsLoadingMore(true);
         setError("");
 
-        // Get next batch of dog IDs using the cursor
-        const nextResults = await searchDogs({
-          size: 100,
-          breeds: selectedBreeds,
-          from: dogIDs.next,
-        });
+        // Use the next query string directly from the API response
+        if (dogIDs.next) {
+          const nextResults = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}${dogIDs.next}`,
+            { credentials: "include" }
+          );
+          const nextData = await nextResults.json();
+          setDogIDs(nextData);
 
-        // If we get new dog IDs, fetch the details and add them to the existing list
-        if (nextResults.resultIds.length > 0) {
-          const newDogDetails = await postDogs(nextResults.resultIds);
-
-          setFetchedDogs((prevDogs) => [...prevDogs, ...newDogDetails]);
-          setDogIDs(nextResults);
+          // If we get new dog IDs, fetch the details and add them to the existing list
+          if (nextData.resultIds.length > 0) {
+            const newDogDetails = await postDogs(nextData.resultIds);
+            setFetchedDogs((prevDogs) => [...prevDogs, ...newDogDetails]);
+          }
         }
       } catch (err) {
         setError("Failed to load more dogs. Please try again later.");

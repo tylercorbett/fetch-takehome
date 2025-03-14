@@ -344,7 +344,6 @@ export default function Home() {
                   color: "white",
                 },
               }}
-              className="mt-4"
             >
               Clear Filters
             </Button>
@@ -363,7 +362,6 @@ export default function Home() {
                     color: "white",
                   },
                 }}
-                className="mt-4"
               >
                 Clear Favorites
               </Button>
@@ -372,7 +370,6 @@ export default function Home() {
                 variant="contained"
                 color="primary"
                 disabled={isMatchLoading}
-                className="mt-4"
               >
                 {isMatchLoading ? "Getting Match..." : "Get Match"}
               </Button>

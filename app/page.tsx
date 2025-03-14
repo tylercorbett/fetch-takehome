@@ -125,7 +125,7 @@ export default function Home() {
   const handlePageChange = async (event: unknown, newPage: number) => {
     setPage(newPage);
 
-    const totalPages = Math.ceil(sortedDogs.length / ROWS_PER_PAGE);
+    const totalPages = Math.ceil(filteredDogs.length / ROWS_PER_PAGE);
 
     const isLastPage = newPage === totalPages - 1;
     if (isLastPage && dogIDs?.next) {
@@ -157,8 +157,33 @@ export default function Home() {
     }
   };
 
-  const handleSortToggle = () => {
-    setSortOrder((prevOrder) => (prevOrder === "asc" ? "desc" : "asc"));
+  const handleSortToggle = async () => {
+    const newOrder = sortOrder === "asc" ? "desc" : "asc";
+    setSortOrder(newOrder);
+
+    try {
+      setIsFilterLoading(true);
+      setError("");
+
+      const results = await searchDogs({
+        size: 100,
+        breeds: selectedBreeds,
+        sort: `breed:${newOrder}`,
+      });
+      setDogIDs(results);
+
+      if (results.resultIds.length > 0) {
+        const dogDetails = await postDogs(results.resultIds);
+        setFetchedDogs(dogDetails);
+      } else {
+        setFetchedDogs([]);
+      }
+    } catch (err) {
+      setError("Failed to sort dogs. Please try again later.");
+      console.error("Error sorting dogs:", err);
+    } finally {
+      setIsFilterLoading(false);
+    }
   };
 
   const handleFavoriteToggle = (dogId: string) => {
@@ -219,15 +244,7 @@ export default function Home() {
     ? fetchedDogs.filter((dog) => selectedBreeds.includes(dog.breed))
     : fetchedDogs;
 
-  const sortedDogs = [...filteredDogs].sort((a, b) => {
-    if (sortOrder === "asc") {
-      return a.breed.localeCompare(b.breed);
-    } else {
-      return b.breed.localeCompare(a.breed);
-    }
-  });
-
-  const currentDogs = sortedDogs.slice(
+  const currentDogs = filteredDogs.slice(
     page * ROWS_PER_PAGE,
     page * ROWS_PER_PAGE + ROWS_PER_PAGE
   );
@@ -433,7 +450,7 @@ export default function Home() {
 
       {fetchedDogs.length > 0 ? (
         <DogTable
-          totalDogs={sortedDogs.length}
+          totalDogs={filteredDogs.length}
           favorites={favorites}
           onFavoriteToggle={handleFavoriteToggle}
           page={page}

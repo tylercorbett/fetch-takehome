@@ -4,46 +4,72 @@ import { API_PATHS } from "../constants";
 export interface DogSearchResponse {
   resultIds: string[];
   total: number;
-  next?: string;
-  prev?: string;
+  next: string | null;
+  prev: string | null;
 }
 
 export interface SearchDogsParams {
-  size?: number;
   breeds?: string[];
+  zipCodes?: string[];
+  ageMin?: number;
+  ageMax?: number;
+  size?: number;
+  from?: string;
+  sort?: string; // format: field:[asc|desc], e.g., "breed:asc"
 }
 
 export async function searchDogs(
-  params: SearchDogsParams = { size: 100 }
+  params: SearchDogsParams
 ): Promise<DogSearchResponse> {
   try {
     const searchParams = new URLSearchParams();
 
-    searchParams.append("size", (params.size || 100).toString());
-
-    if (params.breeds && params.breeds.length > 0) {
-      params.breeds.forEach((breed) => {
-        searchParams.append("breeds", breed);
-      });
+    if (params.breeds?.length) {
+      params.breeds.forEach((breed) => searchParams.append("breeds", breed));
     }
 
-    const url = `${API_BASE_URL}${
-      API_PATHS.DOGS
-    }/search?${searchParams.toString()}`;
+    if (params.zipCodes?.length) {
+      params.zipCodes.forEach((zipCode) =>
+        searchParams.append("zipCodes", zipCode)
+      );
+    }
 
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include",
-    });
+    if (params.ageMin !== undefined) {
+      searchParams.append("ageMin", params.ageMin.toString());
+    }
+
+    if (params.ageMax !== undefined) {
+      searchParams.append("ageMax", params.ageMax.toString());
+    }
+
+    if (params.size !== undefined) {
+      searchParams.append("size", params.size.toString());
+    }
+
+    if (params.from !== undefined) {
+      searchParams.append("from", params.from);
+    }
+
+    if (params.sort !== undefined) {
+      searchParams.append("sort", params.sort);
+    }
+
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_API_BASE_URL
+      }/dogs/search?${searchParams.toString()}`,
+      {
+        credentials: "include",
+      }
+    );
 
     if (!response.ok) {
-      throw new Error(`Dog search failed: ${response.statusText}`);
+      throw new Error("Failed to fetch dogs");
     }
 
-    const data: DogSearchResponse = await response.json();
-    return data;
+    return response.json();
   } catch (error) {
-    console.error("Dog search error:", error);
+    console.error("Error in searchDogs:", error);
     throw error;
   }
 }

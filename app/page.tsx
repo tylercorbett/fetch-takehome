@@ -28,6 +28,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [breeds, setBreeds] = useState<string[]>([]);
   const [matchedDogId, setMatchedDogId] = useState<string | null>(null);
+  const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [matchError, setMatchError] = useState<string>("");
 
@@ -120,8 +121,17 @@ export default function Home() {
     try {
       setIsMatchLoading(true);
       setMatchError("");
+      setMatchedDog(null);
+
+      // Get the match
       const { match } = await postDogsMatch(favoriteIds);
       setMatchedDogId(match);
+
+      // Get the matched dog's details
+      const matchedDogDetails = await postDogs([match]);
+      if (matchedDogDetails.length > 0) {
+        setMatchedDog(matchedDogDetails[0]);
+      }
     } catch (err) {
       setMatchError("Failed to get a match. Please try again later.");
       console.error("Error getting match:", err);
@@ -261,15 +271,56 @@ export default function Home() {
             {matchError}
           </Alert>
         )}
-        {matchedDogId && (
-          <Alert severity="success" sx={{ mt: 2 }}>
-            You've been matched with dog ID: {matchedDogId}!
-            {fetchedDogs.find((dog) => dog.id === matchedDogId) && (
-              <Typography sx={{ mt: 1 }}>
-                Breed:{" "}
-                {fetchedDogs.find((dog) => dog.id === matchedDogId)?.breed}
+        {matchedDog && (
+          <Alert
+            severity="success"
+            sx={{
+              mt: 2,
+              "& .MuiAlert-message": {
+                width: "100%",
+              },
+            }}
+          >
+            <Box>
+              <Typography variant="h6" sx={{ mb: 1 }}>
+                You've been matched with {matchedDog.name}!
               </Typography>
-            )}
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  alignItems: "flex-start",
+                  mt: 1,
+                }}
+              >
+                <Box
+                  component="img"
+                  src={matchedDog.img}
+                  alt={matchedDog.name}
+                  sx={{
+                    width: 200,
+                    height: 200,
+                    objectFit: "cover",
+                    borderRadius: 1,
+                  }}
+                />
+                <Box>
+                  <Typography>
+                    <strong>Breed:</strong> {matchedDog.breed}
+                  </Typography>
+                  <Typography>
+                    <strong>Age:</strong> {matchedDog.age}
+                  </Typography>
+                  <Typography>
+                    <strong>Zip Code:</strong> {matchedDog.zip_code}
+                  </Typography>
+                  <Typography sx={{ mt: 1 }}>
+                    Congratulations on finding your perfect match! Contact your
+                    local shelter to learn more about {matchedDog.name}.
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
           </Alert>
         )}
       </div>

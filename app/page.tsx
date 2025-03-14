@@ -388,7 +388,7 @@ export default function Home() {
             <CircularProgress size={20} />
           ) : userLocation && !locationError ? (
             <Typography variant="body2" color="text.secondary">
-              Finding your city...
+             Unable to locate city
             </Typography>
           ) : null}
         </div>

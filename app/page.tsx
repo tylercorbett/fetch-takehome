@@ -12,10 +12,13 @@ import { postDogs } from "./api/dogs/postDogs";
 import { getDogBreeds } from "./api/dogs/getDogBreeds";
 import { postDogsMatch } from "./api/dogs/postDogsMatch";
 import type { DogSearchResponse } from "./api/dogs/searchDogs";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 const ROWS_PER_PAGE = 6;
 
 export default function Home() {
+  const { width, height } = useWindowSize();
   const { user, logout } = useUser();
   const router = useRouter();
   const [dogResults, setDogResults] = useState<DogSearchResponse | null>(null);
@@ -31,6 +34,7 @@ export default function Home() {
   const [matchedDog, setMatchedDog] = useState<Dog | null>(null);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [matchError, setMatchError] = useState<string>("");
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -79,7 +83,7 @@ export default function Home() {
 
   const handleBreedChange = (breeds: string[]) => {
     setSelectedBreeds(breeds);
-    setPage(0); // Reset to first page when changing filters
+    setPage(0);
   };
 
   const handleClearFilters = () => {
@@ -122,6 +126,7 @@ export default function Home() {
       setIsMatchLoading(true);
       setMatchError("");
       setMatchedDog(null);
+      setShowConfetti(false);
 
       // Get the match
       const { match } = await postDogsMatch(favoriteIds);
@@ -131,6 +136,9 @@ export default function Home() {
       const matchedDogDetails = await postDogs([match]);
       if (matchedDogDetails.length > 0) {
         setMatchedDog(matchedDogDetails[0]);
+        setShowConfetti(true);
+        // Turn off confetti after 5 seconds
+        setTimeout(() => setShowConfetti(false), 5000);
       }
     } catch (err) {
       setMatchError("Failed to get a match. Please try again later.");
@@ -164,6 +172,15 @@ export default function Home() {
 
   return (
     <main className="p-12 bg-off-white min-h-screen min-w-fit">
+      {showConfetti && (
+        <Confetti
+          width={width}
+          height={height}
+          recycle={false}
+          numberOfPieces={500}
+          gravity={0.2}
+        />
+      )}
       <Box
         sx={{
           display: "flex",

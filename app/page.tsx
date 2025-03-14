@@ -238,7 +238,7 @@ export default function Home() {
   };
 
   return (
-    <main className="p-12 bg-off-white min-h-screen min-w-fit">
+    <main className="p-12 bg-white min-h-screen min-w-fit">
       {showConfetti && (
         <Confetti
           width={width}

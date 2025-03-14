@@ -291,7 +291,6 @@ export default function Home() {
 
       const locationResponse = await searchLocations({
         geoBoundingBox: boundingBox,
-        size: 1,
       });
 
       if (locationResponse.results.length > 0) {
